@@ -43,6 +43,8 @@ def export(run_id: int):
         if run["status"] != JobState.DONE:
             raise HTTPException(409, "没有可导出的执行结果")
         run["review"] = reviews.get(db, run_id)
+    # 导出只含核收证据：剥离接单时留存的原件快照，原文清理后不再随证据外流。
+    run.pop("payload_snapshot", None)
     return Response(canonical_json(run), media_type="application/json", headers={
         "Content-Disposition": f"attachment; filename=evidence-{run_id}.json",
     })

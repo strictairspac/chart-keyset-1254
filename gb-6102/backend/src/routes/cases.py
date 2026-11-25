@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 
 from src.config.resources import engine
 from src.controllers.access import identity, operator
-from src.controllers.workbench import new_case, new_run
+from src.controllers.workbench import new_case, new_run, seal_case
 from src.schemas.cases import CaseEntry, CaseInput
 from src.schemas.runs import RunEntry, RunInput
 from src.services import cases
@@ -25,6 +25,11 @@ def case_detail(case_id: int):
 @router.post("", response_model=CaseEntry, status_code=201)
 def register(form: CaseInput, user=Depends(operator)):
     return new_case(form, user)
+
+
+@router.post("/{case_id}/seal", response_model=CaseEntry)
+def seal(case_id: int, user=Depends(operator)):
+    return seal_case(case_id, user)
 
 
 @router.post("/{case_id}/runs", response_model=RunEntry, status_code=202)

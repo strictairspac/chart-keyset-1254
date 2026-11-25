@@ -3,6 +3,7 @@ from uuid import uuid4
 from fastapi import HTTPException
 from sqlalchemy import insert, select
 
+from src.constants.job_state import RetentionState
 from src.domain import scenario
 from src.models.cases import cases
 from .audit import record
@@ -26,7 +27,10 @@ def create(db, data, actor):
             validator(data.payload)
         except ValueError as exc:
             raise HTTPException(422, str(exc)) from exc
-    change = db.execute(insert(cases).values(**data.model_dump(), code=f"CASE-{uuid4().hex[:12].upper()}", created_by=actor))
+    change = db.execute(insert(cases).values(
+        **data.model_dump(), code=f"CASE-{uuid4().hex[:12].upper()}", created_by=actor,
+        sealed=0, retention_state=RetentionState.ACTIVE,
+    ))
     case_id = change.inserted_primary_key[0]
     record(db, "create_case", actor, "case", case_id)
     return get(db, case_id)

@@ -5,6 +5,7 @@ export const api = {
   login: data => request("/auth/login", {method: "POST", data}),
   cases: () => request("/cases"),
   createCase: data => request("/cases", {method: "POST", data}),
+  sealCase: id => request(`/cases/${id}/seal`, {method: "POST"}),
   runs: () => request("/runs"),
   run: (id, signal) => request(`/runs/${id}`, {signal}),
   enqueue: (id, data) => request(`/cases/${id}/runs`, {method: "POST", data}),

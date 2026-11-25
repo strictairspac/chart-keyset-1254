@@ -3,7 +3,7 @@ from sqlalchemy import func, select
 from sqlalchemy.dialects.mysql import insert as mysql_insert
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 
-from migrations.v001_workbench import upgrade
+from migrations import v001_workbench, v002_retention
 from src.config.resources import engine
 from src.config.settings import DEMO_PASSWORD
 from src.constants.roles import Role
@@ -22,8 +22,11 @@ def insert_new(db, table, key, values):
 
 
 def setup_schema():
-    with engine.begin() as db:
-        upgrade(db)
+    # 按版本顺序幂等升级；v001 建基础表，v002 补封存/清理结构，已执行的加列会跳过。
+    migrations = (v001_workbench, v002_retention)
+    for migration in migrations:
+        with engine.begin() as db:
+            migration.upgrade(db)
 
 
 def seed():

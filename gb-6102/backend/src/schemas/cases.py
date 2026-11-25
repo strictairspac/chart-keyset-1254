@@ -1,5 +1,6 @@
 from pydantic import BaseModel, Field, field_validator
 
+from src.constants.job_state import RetentionState
 from src.utils.serial import canonical_json
 
 
@@ -27,3 +28,11 @@ class CaseEntry(CaseInput):
     id: int
     code: str
     created_by: str
+    sealed: bool
+    sealed_at: int | None
+    sealed_by: str | None
+    retention_state: RetentionState
+    retention_requested_at: int | None
+    retention_cleaned_at: int | None
+    # 原文清理后为 null，前端据此隐藏业务 JSON。
+    payload: dict | None

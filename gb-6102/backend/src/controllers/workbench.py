@@ -1,6 +1,6 @@
 from redis.exceptions import RedisError
 from src.config.resources import cache, engine
-from src.services import cases, runs, reviews
+from src.services import cases, retention, runs, reviews
 
 
 def new_case(data, user):
@@ -23,3 +23,15 @@ def new_run(case_id, data, user):
 def new_review(run_id, data, user):
     with engine.begin() as db:
         return reviews.sign(db, run_id, data, user["username"])
+
+
+def seal_case(case_id, user):
+    with engine.begin() as db:
+        entry = retention.seal(db, case_id, user["username"])
+    try:
+        cache.lpush("workbench:wake", "retention")
+        cache.ltrim("workbench:wake", 0, 99)
+    except RedisError:
+        # 清理任务持久化在数据库，worker 轮询也会拾取。
+        pass
+    return entry

@@ -23,7 +23,13 @@ def service_one():
         task = db.execute(statement).mappings().first()
         if task is None:
             return False
-        payload = db.scalar(select(cases.c.payload).where(cases.c.id == task["case_id"]))
+        # 始终使用接单时留存的原件，资料封存或清理不影响在途批次。
+        payload = task["payload_snapshot"]
+        if payload is None:
+            # 仅兼容升级前已在排队、尚未留快照的旧批次；正常批次不会走到这里。
+            payload = db.scalar(select(cases.c.payload).where(cases.c.id == task["case_id"]))
+        if payload is None:
+            raise JobFailure(task["id"], ValueError("资料原文已清理，该批次缺少接单快照，无法执行"))
         try:
             result = scenario.run(payload, task["parameter"], db)
             output = {"status": JobState.DONE, "result": result, "digest": content_digest(result)}

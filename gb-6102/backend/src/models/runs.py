@@ -14,4 +14,6 @@ runs = Table(
     Column("result", JSON(none_as_null=True), nullable=True),
     Column("failure", String(320), nullable=True),
     Column("digest", String(64), nullable=True),
+    # 接单时刻留存的原件，封存与清理后仍按原件把该单做到结束。
+    Column("payload_snapshot", JSON(none_as_null=True), nullable=True),
 )
